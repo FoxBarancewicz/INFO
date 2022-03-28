@@ -9,7 +9,7 @@
     Up to 5 people running around breaking this constantly
     If it's all in one file, then things are going to be hard to fix
 
-    If in doubt, `import this`
+    If in doubt, `import this.`
 '''
 
 #-----------------------------------------------------------------------------
