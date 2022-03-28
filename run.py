@@ -31,7 +31,7 @@ import controller
 
 # It might be a good idea to move the following settings to a config file and then load them
 # Change this to your IP address or 0.0.0.0 when actually hosting
-host = 'localhost'
+host = '0.0.0.0'
 
 # Test port, change to the appropriate port to host
 port = 8081
@@ -44,7 +44,7 @@ def run_server():
         run_server
         Runs a bottle server
     '''
-    run(host=host, port=port, debug=debug)
+    run(host=host, port=port, debug=debug, reloader=True, server='gunicorn', keyfile='./certificates/localhost.decrypted.key', certfile='./certificates/localhost.crt')
 
 #-----------------------------------------------------------------------------
 # Optional SQL support
