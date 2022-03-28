@@ -92,7 +92,7 @@ def run_commands(args):
         :: args :: Command line arguments passed to this function
     '''
     commands = args[1:]
-
+    
     # Default command
     if len(commands) == 0:
         commands = [default_command]
