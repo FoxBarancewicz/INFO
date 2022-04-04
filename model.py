@@ -8,6 +8,8 @@
 import view
 import random
 
+from password_verify import verify_pass
+
 # Initialise our views, all arguments are defaults for the template
 page_view = view.View()
 
@@ -47,16 +49,8 @@ def login_check(username, password):
         Returns either a view for valid credentials, or a view for invalid credentials
     '''
 
-    # By default assume good creds
-    login = True
-    
-    if username != "admin": # Wrong Username
-        err_str = "Incorrect Username"
-        login = False
-    
-    if password != "password": # Wrong password
-        err_str = "Incorrect Password"
-        login = False
+    # Checks for valid credentials
+    login, err_str = verify_pass(username,password)
         
     if login: 
         return page_view("valid", name=username)

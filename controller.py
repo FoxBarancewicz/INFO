@@ -8,6 +8,10 @@ from bottle import route, get, post, error, request, static_file
 
 import model
 
+from Crypto.Hash import SHA512
+
+from password_verify import verify_pass
+
 #-----------------------------------------------------------------------------
 # Static file paths
 #-----------------------------------------------------------------------------
@@ -101,8 +105,11 @@ def post_login():
     username = request.forms.get('username')
     password = request.forms.get('password')
     
+    # Encrypt the password SHA512 TODO, frontend doesn't handle raw passwords.
+    b64pwd = SHA512.new(password.encode()).digest()
+
     # Call the appropriate method
-    return model.login_check(username, password)
+    return model.login_check(username, b64pwd)
 
 
 
