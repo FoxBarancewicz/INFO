@@ -7,11 +7,14 @@
 '''
 import view
 import random
+import secrets
 
 from password_verify import verify_pass
 
 # Initialise our views, all arguments are defaults for the template
 page_view = view.View()
+
+cookie_dict = {}
 
 #-----------------------------------------------------------------------------
 # Index
@@ -53,9 +56,24 @@ def login_check(username, password):
     login, err_str = verify_pass(username,password)
         
     if login: 
-        return page_view("valid", name=username)
+        # Generate cookie, store cookie in dict
+
+        cookie = secrets.token_hex(16)
+        cookie_dict[cookie] = (username)
+        return page_view("valid", name=username), cookie, login
+
     else:
-        return page_view("invalid", reason=err_str)
+        return page_view("invalid", reason=err_str), None, login
+
+def messaging_service(cookie):
+    '''
+        messaging_service
+        Returns the view for the messaging service if logged in
+    '''
+    if cookie in cookie_dict:
+        return page_view("valid_cookie")
+    else:
+        return page_view("invalid_cookie")
 
 #-----------------------------------------------------------------------------
 # About

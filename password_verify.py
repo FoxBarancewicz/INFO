@@ -12,9 +12,11 @@ def verify_pass(username, password):
     # fetches salt from storage file
     with open('storage.csv', 'r') as f:
         while True:
-            data = f.readline().split(",")
-            if data == None:
+            data = f.readline()
+            print(data)
+            if len(data) == 0:
                 break
+            data = data.split(',')
             if data[0] == username:
                 salt = binascii.unhexlify(data[2].strip("\n"))
                 bcrypt_hash = bcrypt(password, 12, salt=salt)

@@ -4,7 +4,7 @@
     maybe some simple program logic
 '''
 
-from bottle import route, get, post, error, request, static_file
+from bottle import route, get, post, error, request, static_file, response, request
 
 import model
 
@@ -79,6 +79,22 @@ def get_index():
 
 #-----------------------------------------------------------------------------
 
+# Display the messaging page
+@get('/messaging')
+def get_messaging():
+    '''
+        get_messaging
+
+        Serves the messaging page
+    '''
+
+    cookie = request.get_cookie('auth')
+    
+    return model.messaging_service(cookie)
+
+
+#-----------------------------------------------------------------------------
+
 # Display the login page
 @get('/login')
 def get_login_controller():
@@ -88,6 +104,7 @@ def get_login_controller():
         Serves the login page
     '''
     return model.login_form()
+
 
 #-----------------------------------------------------------------------------
 
@@ -109,8 +126,16 @@ def post_login():
     b64pwd = SHA512.new(password.encode()).digest()
 
     # Call the appropriate method
-    return model.login_check(username, b64pwd)
+    valid_login, cookie, login = model.login_check(username, b64pwd)
 
+    if login:
+        response.set_cookie('auth', cookie, secure=True, httponly=True)
+        return valid_login
+
+    return valid_login
+
+    # Set a cookie
+    #response.set_cookie('auth', cookie, secure=True, httponly=True)
 
 
 #-----------------------------------------------------------------------------
