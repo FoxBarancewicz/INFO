@@ -70,7 +70,10 @@ def messaging_service(cookie):
         messaging_service
         Returns the view for the messaging service if logged in
     '''
+    
     if cookie in cookie_dict:
+        #just to show the messaging page, modify however you want
+        return page_view("messaging")
         return page_view("valid_cookie")
     else:
         return page_view("invalid_cookie")
