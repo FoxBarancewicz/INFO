@@ -92,7 +92,12 @@ def get_messaging():
     
     return model.messaging_service(cookie)
 
+#-----------------------------------------------------------------------------
 
+@post('/messaging')
+def post_messaging():
+    messages = request.forms.get('messages')
+    return model.messages_send(messages)
 #-----------------------------------------------------------------------------
 
 # Display the login page

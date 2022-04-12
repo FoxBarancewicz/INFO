@@ -5,6 +5,7 @@
     It should exist as a separate layer to any database or data structure that you might be using
     Nothing here should be stateful, if it's stateful let the database handle it
 '''
+from email import message
 import view
 import random
 import secrets
@@ -13,7 +14,8 @@ from password_verify import verify_pass
 
 # Initialise our views, all arguments are defaults for the template
 page_view = view.View()
-
+message_array=['']*8
+current_index = 0
 cookie_dict = {}
 
 #-----------------------------------------------------------------------------
@@ -73,10 +75,27 @@ def messaging_service(cookie):
     
     if cookie in cookie_dict:
         #just to show the messaging page, modify however you want
-        return page_view("messaging")
+        return page_view("messaging",name="fox",one=message_array[0],two=message_array[1],three=message_array[2],four=message_array[3],five=message_array[4],six=message_array[5],seven=message_array[6],eight=message_array[7])
         return page_view("valid_cookie")
     else:
         return page_view("invalid_cookie")
+
+#-----------------------------------------------------------------------------
+def messages_send(messages):
+    global current_index
+    
+    if current_index==7:
+        i = 0
+        while i<7:
+            message_array[i] = message_array[i+1]
+            i+=1
+    else:
+        current_index+=1
+        
+    message_array[current_index]= messages
+    return page_view("messaging",name="fox",one=message_array[0],two=message_array[1],three=message_array[2],four=message_array[3],five=message_array[4],six=message_array[5],seven=message_array[6],eight=message_array[7])
+    
+
 
 #-----------------------------------------------------------------------------
 # About
