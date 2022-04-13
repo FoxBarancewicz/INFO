@@ -100,7 +100,7 @@ def get_messaging():
 def post_messaging():
 
     send_to = request.forms.get('send_to')
-
+ 
     messages = request.forms.get('messages')
 
     cookie = request.get_cookie('auth')

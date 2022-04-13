@@ -13,11 +13,18 @@ from bottle import request
 
 from password_verify import verify_pass
 
+from messaging_class import messaging
+
 # Initialise our views, all arguments are defaults for the template
 page_view = view.View()
 message_array=['']*8
 current_index = 1 # init at 1 (i.e. blue boxes)
 cookie_dict = {}
+
+prev_messaging_class = None
+
+# key: object, elements: user_1, user_2
+messaging_class_ls = []
 
 #-----------------------------------------------------------------------------
 # Index
@@ -95,30 +102,47 @@ def messaging_service(cookie):
 def messages_send(messages, cookie, send_to):
     # cookie used to ident which user is logged in, always set logged in user as 'blue' message boxes
     # messaging class to manage who is messaging who?
-    global current_index
+    # hashmap of from_to/send_to with class of chat.
+
+    global prev_messaging_class
+
+    user_from = cookie_dict[cookie]
+
+    if send_to != None:
+
+        curr_messaging_class = None
+
+        for _class in messaging_class_ls:
+            if ((_class.user_1 == send_to or _class.user_2 == send_to) and 
+            (_class.user_1 == user_from or _class.user_2 == user_from)):
+                # class already created for the two users
+                curr_messaging_class = _class
+
+        # creates new messaging class if users have no prior chat history
+        if curr_messaging_class == None:
+            curr_messaging_class = messaging(user_from, send_to)
+            messaging_class_ls.append(curr_messaging_class)
+
+        prev_messaging_class = curr_messaging_class
 
     if messages != None:
-        message_array[current_index] = messages
+        prev_messaging_class.message_send(user_from, messages)
 
-        if current_index==7:
-            i = 1
-            while i<7:
-                message_array[i] = message_array[i+1]
-                i+=1
-        else:
-            current_index+=2
+    message_array = prev_messaging_class.fetch_messages(user_from)
+
+    send_to = prev_messaging_class.user_1 if prev_messaging_class.user_1 != user_from else prev_messaging_class.user_2
 
     return page_view("messaging"
     ,name_to=send_to
-    ,name_from=cookie_dict[cookie]
-    ,one=message_array[0]
-    ,two=message_array[1]
-    ,three=message_array[2]
-    ,four=message_array[3]
-    ,five=message_array[4]
-    ,six=message_array[5]
-    ,seven=message_array[6]
-    ,eight=message_array[7])
+    ,name_from=user_from
+    ,one=message_array[7]
+    ,two=message_array[3]
+    ,three=message_array[6]
+    ,four=message_array[2]
+    ,five=message_array[5]
+    ,six=message_array[1]
+    ,seven=message_array[4]
+    ,eight=message_array[0])
     
 
 
