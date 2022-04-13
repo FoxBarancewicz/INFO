@@ -9,13 +9,14 @@ from email import message
 import view
 import random
 import secrets
+from bottle import request
 
 from password_verify import verify_pass
 
 # Initialise our views, all arguments are defaults for the template
 page_view = view.View()
 message_array=['']*8
-current_index = 0
+current_index = 1 # init at 1 (i.e. blue boxes)
 cookie_dict = {}
 
 #-----------------------------------------------------------------------------
@@ -75,25 +76,49 @@ def messaging_service(cookie):
     
     if cookie in cookie_dict:
         #just to show the messaging page, modify however you want
-        return page_view("messaging",name="fox",one=message_array[0],two=message_array[1],three=message_array[2],four=message_array[3],five=message_array[4],six=message_array[5],seven=message_array[6],eight=message_array[7])
+        return page_view("messaging"
+        ,name_to="Name"
+        ,name_from=cookie_dict[cookie]
+        ,one=message_array[0]
+        ,two=message_array[1]
+        ,three=message_array[2]
+        ,four=message_array[3]
+        ,five=message_array[4]
+        ,six=message_array[5]
+        ,seven=message_array[6]
+        ,eight=message_array[7])
         return page_view("valid_cookie")
     else:
         return page_view("invalid_cookie")
 
 #-----------------------------------------------------------------------------
-def messages_send(messages):
+def messages_send(messages, cookie, send_to):
+    # cookie used to ident which user is logged in, always set logged in user as 'blue' message boxes
+    # messaging class to manage who is messaging who?
     global current_index
-    
-    if current_index==7:
-        i = 0
-        while i<7:
-            message_array[i] = message_array[i+1]
-            i+=1
-    else:
-        current_index+=1
-        
-    message_array[current_index]= messages
-    return page_view("messaging",name="fox",one=message_array[0],two=message_array[1],three=message_array[2],four=message_array[3],five=message_array[4],six=message_array[5],seven=message_array[6],eight=message_array[7])
+
+    if messages != None:
+        message_array[current_index] = messages
+
+        if current_index==7:
+            i = 1
+            while i<7:
+                message_array[i] = message_array[i+1]
+                i+=1
+        else:
+            current_index+=2
+
+    return page_view("messaging"
+    ,name_to=send_to
+    ,name_from=cookie_dict[cookie]
+    ,one=message_array[0]
+    ,two=message_array[1]
+    ,three=message_array[2]
+    ,four=message_array[3]
+    ,five=message_array[4]
+    ,six=message_array[5]
+    ,seven=message_array[6]
+    ,eight=message_array[7])
     
 
 

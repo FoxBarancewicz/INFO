@@ -4,7 +4,7 @@
     maybe some simple program logic
 '''
 
-from bottle import route, get, post, error, request, static_file, response, request
+from bottle import route, get, post, error, request, static_file, response, request, redirect
 
 import model
 
@@ -88,16 +88,25 @@ def get_messaging():
         Serves the messaging page
     '''
 
+
     cookie = request.get_cookie('auth')
-    
+
     return model.messaging_service(cookie)
 
 #-----------------------------------------------------------------------------
 
+# Must message to a particular user
 @post('/messaging')
 def post_messaging():
+
+    send_to = request.forms.get('send_to')
+
     messages = request.forms.get('messages')
-    return model.messages_send(messages)
+
+    cookie = request.get_cookie('auth')
+
+    return model.messages_send(messages, cookie, send_to)
+
 #-----------------------------------------------------------------------------
 
 # Display the login page
@@ -135,7 +144,7 @@ def post_login():
 
     if login:
         response.set_cookie('auth', cookie, secure=True, httponly=True)
-        return valid_login
+        redirect('/messaging')
 
     return valid_login
 
