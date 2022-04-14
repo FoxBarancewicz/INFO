@@ -6,12 +6,13 @@
     Nothing here should be stateful, if it's stateful let the database handle it
 '''
 from email import message
+from http.cookies import CookieError
 import view
 import random
 import secrets
 from bottle import request
 
-from password_verify import verify_pass
+from password_verify import verify_pass,verify_username
 
 from messaging_class import messaging
 
@@ -80,20 +81,40 @@ def messaging_service(cookie):
         messaging_service
         Returns the view for the messaging service if logged in
     '''
-    
+    global prev_messaging_class
+    receiver_name = "Name"
+    message_array=['']*8
+        
     if cookie in cookie_dict:
+        
+        if prev_messaging_class != None:
+
+            if cookie_dict[cookie]==prev_messaging_class.user_1:
+                
+                if verify_username(prev_messaging_class.user_2):
+                    receiver_name = prev_messaging_class.user_2
+                    message_array = prev_messaging_class.fetch_messages(cookie_dict[cookie])
+            elif cookie_dict[cookie]==prev_messaging_class.user_2:
+                if verify_username(prev_messaging_class.user_1):
+                    receiver_name = prev_messaging_class.user_1
+                    message_array = prev_messaging_class.fetch_messages(cookie_dict[cookie])
+            
+            
+            
+        
+
         #just to show the messaging page, modify however you want
         return page_view("messaging"
-        ,name_to="Name"
+        ,name_to= receiver_name
         ,name_from=cookie_dict[cookie]
-        ,one=message_array[0]
-        ,two=message_array[1]
-        ,three=message_array[2]
-        ,four=message_array[3]
-        ,five=message_array[4]
-        ,six=message_array[5]
-        ,seven=message_array[6]
-        ,eight=message_array[7])
+        ,one=message_array[7]
+        ,two=message_array[3]
+        ,three=message_array[6]
+        ,four=message_array[2]
+        ,five=message_array[5]
+        ,six=message_array[1]
+        ,seven=message_array[4]
+        ,eight=message_array[0])
         return page_view("valid_cookie")
     else:
         return page_view("invalid_cookie")
@@ -103,7 +124,7 @@ def messages_send(messages, cookie, send_to):
     # cookie used to ident which user is logged in, always set logged in user as 'blue' message boxes
     # messaging class to manage who is messaging who?
     # hashmap of from_to/send_to with class of chat.
-
+    message_array = ['']*8
     global prev_messaging_class
 
     user_from = cookie_dict[cookie]
@@ -120,10 +141,39 @@ def messages_send(messages, cookie, send_to):
 
         # creates new messaging class if users have no prior chat history
         if curr_messaging_class == None:
-            curr_messaging_class = messaging(user_from, send_to)
-            messaging_class_ls.append(curr_messaging_class)
+            #check if send_to username is in database first
+            if verify_username(send_to):
+                curr_messaging_class = messaging(user_from, send_to)
+                messaging_class_ls.append(curr_messaging_class)
+            else:
+                return page_view("messaging"
+                ,name_to="Namez"
+                ,name_from=user_from
+                ,one=message_array[7]
+                ,two=message_array[3]
+                ,three=message_array[6]
+                ,four=message_array[2]
+                ,five=message_array[5]
+                ,six=message_array[1]
+                ,seven=message_array[4]
+                ,eight=message_array[0])
+
+
 
         prev_messaging_class = curr_messaging_class
+    #if send to is blank 
+    else:
+        return page_view("messaging"
+                ,name_to="Namep"
+                ,name_from=user_from
+                ,one=message_array[7]
+                ,two=message_array[3]
+                ,three=message_array[6]
+                ,four=message_array[2]
+                ,five=message_array[5]
+                ,six=message_array[1]
+                ,seven=message_array[4]
+                ,eight=message_array[0])
 
     if messages != None:
         prev_messaging_class.message_send(user_from, messages)

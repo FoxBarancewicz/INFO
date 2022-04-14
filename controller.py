@@ -98,9 +98,11 @@ def get_messaging():
 # Must message to a particular user
 @post('/messaging')
 def post_messaging():
-
+    
     send_to = request.forms.get('send_to')
- 
+    
+    
+    
     messages = request.forms.get('messages')
 
     cookie = request.get_cookie('auth')
@@ -175,3 +177,5 @@ def post_debug(cmd):
 @error(404)
 def error(error): 
     return model.handle_errors(error)
+
+model.about()

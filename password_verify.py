@@ -3,6 +3,19 @@ from base64 import b64encode
 from Crypto.Hash import SHA512
 from Crypto.Protocol.KDF import bcrypt
 import binascii
+#checks if the username is in database
+def verify_username(username):
+    
+    with open('storage.csv', 'r') as f:
+        while True:
+            data = f.readline()
+            if len(data) == 0:
+                break
+            if username==data[0]:
+                return True
+        return False
+
+
 
 # password is pre-hashed in controller.py
 def verify_pass(username, password):
