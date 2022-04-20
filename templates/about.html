@@ -1,12 +1,82 @@
-<p>
-	<img src="img/header.jpg" alt="Some stuff that popped out of tensor flow" height="50%">
-	</p>
-<p>We're a group of threatening web-dev game changers who are commoditising opportunity pipelines and reorthogonalising boost up-sell messages before getting out of bed each day.
-	<br>In our team we have: 
-	<br><b>Joe User:</b> Our humble software farmer
-	<br><b>Jane Admin:</b>  Our professional software horticulturist
-	</p>
-	
-	<p>
-	And together we're here to ${garble}
-	</p>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta http-equiv="content-type" content="text/html;charset=UTF-8">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>SSMS</title>
+    <link rel="icon" type="image/png" href="img/squawk-logo.png" />
+    <style type="text/css">
+    html,body {
+        min-height: 100vh;
+        background-color: #8bd6d3;
+    }
+
+    h3 {
+        letter-spacing: .1em;
+        font-size: 2vmin;
+        font-family: sans-serif;
+        font-weight: 600;
+        font-style: italic;
+        color: #001133;
+
+    }
+    .container {
+        width: 60%;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        margin: auto;
+        text-align: center;
+    }
+    .squawk {
+        width: 55vmin;
+        height: auto;
+    }
+    .flexrow {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: top;
+        flex-wrap: wrap;
+    }
+    .flexrow a {
+        margin: .7em;
+        transition: all .2s;
+    }
+    .flexrow a:hover {
+        filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
+        transform: translateY(-1px);
+    }
+    .flexrow img {
+        height: 4em;
+        width: auto;
+    }
+    .flexrow img.tg {height: 3.2em;}
+
+    </style>
+
+  </head>
+  <body>
+      <div class="container">
+          <img src="img/squawk-logo.png" alt="SQUAWK MESSAGING" class="squawk">
+          <h3>We're a group of threatening web-dev game changers who are commoditising opportunity pipelines and reorthogonalising boost up-sell messages before getting out of bed each day.
+            <p>
+                In our team we have: 
+                <br><b>Joe User:</b> Our humble software farmer
+                <br><b>Jane Admin:</b>  Our professional software horticulturist
+                </p>
+                
+                <p>
+                And together we're here to ${garble}</p>
+          </h3>
+          <div class="flexrow">
+              <a href="/home"><img src="img/back-button.png" alt="back"></a>
+          </div>
+      </div>
+
+  </body>
+</html>

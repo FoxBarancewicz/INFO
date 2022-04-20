@@ -13,7 +13,6 @@ def verify_pass(username, password):
     with open('storage.csv', 'r') as f:
         while True:
             data = f.readline()
-            print(data)
             if len(data) == 0:
                 break
             data = data.split(',')
@@ -26,3 +25,14 @@ def verify_pass(username, password):
                 if data[1] != bcrypt_hash.hex():
                     return False, "Incorrect Password!"
     return False, "Invalid Username!"
+
+def verify_user(username):
+    with open('storage.csv', 'r') as f:
+        while True:
+            data = f.readline()
+            if len(data) == 0:
+                break
+            data = data.split(',')
+            if data[0] == username:
+                return True
+        return False

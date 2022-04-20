@@ -10,7 +10,9 @@ import model
 
 from Crypto.Hash import SHA512
 
-from password_verify import verify_pass
+from password_verify import verify_pass, verify_user
+
+from cryptography.fernet import Fernet
 
 #-----------------------------------------------------------------------------
 # Static file paths
@@ -98,14 +100,29 @@ def get_messaging():
 # Must message to a particular user
 @post('/messaging')
 def post_messaging():
+    
+    cookie = request.get_cookie('auth')
 
     send_to = request.forms.get('send_to')
- 
-    messages = request.forms.get('messages')
+
+    # Send message to server
+    # message should be encrypted here
+    message = request.forms.get('messages')
+
+    # verify_user will return True if user exists in database, else false
+    if not verify_user(send_to):
+        send_to = None
+
+    # Do some fancy encryption so that both parties can read message TODO
+
+    fernet = Fernet(model.cookie_dict[cookie][1])
+
+    if message != None:
+        message = fernet.encrypt(message.encode())
 
     cookie = request.get_cookie('auth')
 
-    return model.messages_send(messages, cookie, send_to)
+    return model.messages_send(message, cookie, send_to)
 
 #-----------------------------------------------------------------------------
 
@@ -136,14 +153,15 @@ def post_login():
     username = request.forms.get('username')
     password = request.forms.get('password')
     
-    # Encrypt the password SHA512 TODO, frontend doesn't handle raw passwords.
     b64pwd = SHA512.new(password.encode()).digest()
 
     # Call the appropriate method
-    valid_login, cookie, login = model.login_check(username, b64pwd)
+    valid_login, cookie, login = model.login_check(username, b64pwd, request.get_cookie('auth'))
 
     if login:
+
         response.set_cookie('auth', cookie, secure=True, httponly=True)
+
         redirect('/messaging')
 
     return valid_login
@@ -175,3 +193,5 @@ def post_debug(cmd):
 @error(404)
 def error(error): 
     return model.handle_errors(error)
+
+model.about()

@@ -5,15 +5,19 @@
     It should exist as a separate layer to any database or data structure that you might be using
     Nothing here should be stateful, if it's stateful let the database handle it
 '''
+from base64 import decode
 from email import message
+from email.utils import decode_rfc2231
 import view
 import random
 import secrets
-from bottle import request
+from bottle import request, response
 
-from password_verify import verify_pass
+from password_verify import verify_pass, verify_user
 
 from messaging_class import messaging
+
+from cryptography.fernet import Fernet
 
 # Initialise our views, all arguments are defaults for the template
 page_view = view.View()
@@ -51,7 +55,7 @@ def login_form():
 #-----------------------------------------------------------------------------
 
 # Check the login credentials
-def login_check(username, password):
+def login_check(username, password, curr_cookie):
     '''
         login_check
         Checks usernames and passwords
@@ -67,10 +71,24 @@ def login_check(username, password):
         
     if login: 
         # Generate cookie, store cookie in dict
+        # Generate key
+        given_cookie = curr_cookie
 
-        cookie = secrets.token_hex(16)
-        cookie_dict[cookie] = (username)
-        return page_view("valid", name=username), cookie, login
+        # Checks if user already has cookie
+        for cookie in cookie_dict:
+            if cookie_dict[cookie][0] == username:
+                curr_cookie = cookie
+
+        # User doesn't have a cookie, issues a new one and adds to cookie_dict
+        if given_cookie == curr_cookie:
+
+            curr_cookie = secrets.token_hex(16)
+
+            key = Fernet.generate_key()
+
+            cookie_dict[curr_cookie] = (username, key)
+
+        return page_view("valid", name=username), curr_cookie, login
 
     else:
         return page_view("invalid", reason=err_str), None, login
@@ -85,7 +103,7 @@ def messaging_service(cookie):
         #just to show the messaging page, modify however you want
         return page_view("messaging"
         ,name_to="Name"
-        ,name_from=cookie_dict[cookie]
+        ,name_from=cookie_dict[cookie][0]
         ,one=message_array[0]
         ,two=message_array[1]
         ,three=message_array[2]
@@ -94,19 +112,18 @@ def messaging_service(cookie):
         ,six=message_array[5]
         ,seven=message_array[6]
         ,eight=message_array[7])
-        return page_view("valid_cookie")
     else:
         return page_view("invalid_cookie")
 
 #-----------------------------------------------------------------------------
-def messages_send(messages, cookie, send_to):
+def messages_send(message, cookie, send_to):
     # cookie used to ident which user is logged in, always set logged in user as 'blue' message boxes
     # messaging class to manage who is messaging who?
     # hashmap of from_to/send_to with class of chat.
 
     global prev_messaging_class
 
-    user_from = cookie_dict[cookie]
+    user_from = cookie_dict[cookie][0]
 
     if send_to != None:
 
@@ -123,26 +140,70 @@ def messages_send(messages, cookie, send_to):
             curr_messaging_class = messaging(user_from, send_to)
             messaging_class_ls.append(curr_messaging_class)
 
-        prev_messaging_class = curr_messaging_class
+        prev_messaging_class = curr_messaging_class 
 
-    if messages != None:
-        prev_messaging_class.message_send(user_from, messages)
+    message_array = ['']*8
+    new_message_arr = []
 
-    message_array = prev_messaging_class.fetch_messages(user_from)
+    '''
+    When taking part in a two-way chat, the sender will encrypt messages with their private key (accessed through local 
+    dictionary variable, referenced with sender's authentication cookie. (i.e. to send an encrypted message from 'user', 
+    'user' must be logged in.)). The receiver of said message must have previously logged in for the current instance of
+    the messaging webapp (i.e. receiver must have a unique log-in every time the server restarts). If authenticated, the
+    receiver will be able to access the encrypted messages through access-control to the messaging class for any chat they
+    are involved in. For messages sent by the receiver, these are decrypted locally using the receiver's private key (accessed
+    in same way as for the sender, see above), and for messages received from the sender, these are decrypted (also locally),
+    however using the sender's private key, with the effectively being given access to the private key of the sender for the
+    purpose of decrypting the messages. The receiver does not ever see the senders' private-key, nor will the sender ever be able
+    to see the receiver's private key.
+    '''
 
-    send_to = prev_messaging_class.user_1 if prev_messaging_class.user_1 != user_from else prev_messaging_class.user_2
+    if prev_messaging_class != None:
+        send_to = prev_messaging_class.user_1 if prev_messaging_class.user_1 != user_from else prev_messaging_class.user_2
+        if message != None:
+            prev_messaging_class.message_send(user_from, message)
+        print(prev_messaging_class.u1_messages, prev_messaging_class.u2_messages)
+        message_array = prev_messaging_class.fetch_messages(user_from)
 
+    count = 0
+
+    for message in message_array:
+
+        # Handles first 4 messages in message_array, which represent messages sent from the logged-in user, 
+        # to be decrypted using said users' key
+        if message != '' and (count < 4):
+            # Inits new fernet class using logged-in users' key
+            fernet = Fernet(cookie_dict[cookie][1])
+            new_message_arr.append(fernet.decrypt(message).decode())
+
+        '''
+        Access control: other users' key cannot be physically viewed, and can only be called upon when other user is verified as
+        the other party in the messaging class between two parties.
+        '''
+        # Handles last 4 messages in message_array, representing messages sent from the other user in the two-way chat,
+        # to be decrypted using the other users' key.
+        if message != '' and (count >= 4):
+            for user_cookie in cookie_dict:
+                if cookie_dict[user_cookie][0] == send_to:
+                    fernet = Fernet(cookie_dict[user_cookie][1])
+                    new_message_arr.append(fernet.decrypt(message).decode())
+
+        elif message == '':
+            new_message_arr.append('')
+
+        count += 1
+        
     return page_view("messaging"
     ,name_to=send_to
     ,name_from=user_from
-    ,one=message_array[7]
-    ,two=message_array[3]
-    ,three=message_array[6]
-    ,four=message_array[2]
-    ,five=message_array[5]
-    ,six=message_array[1]
-    ,seven=message_array[4]
-    ,eight=message_array[0])
+    ,one=new_message_arr[7]
+    ,two=new_message_arr[3]
+    ,three=new_message_arr[6]
+    ,four=new_message_arr[2]
+    ,five=new_message_arr[5]
+    ,six=new_message_arr[1]
+    ,seven=new_message_arr[4]
+    ,eight=new_message_arr[0])
     
 
 
