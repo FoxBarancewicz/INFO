@@ -167,6 +167,8 @@ def messages_send(message, cookie, send_to):
 
     count = 0
 
+    print(message)
+
     for message in message_array:
 
         # Handles first 4 messages in message_array, which represent messages sent from the logged-in user, 
